@@ -384,7 +384,7 @@ export function Dashboard() {
                     <div className="flex items-center gap-1">
                       Market Cap <SortIcon field="marketCap" />
                     </div>
-                  </th>                  
+                  </th>
                   <th
                     className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
                     onClick={() => handleSort('fdv')}
@@ -582,10 +582,10 @@ function SubnetRow({
           ? `${item.metrics.emission_percent.toFixed(2)}%`
           : '-'}
       </td>
-   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
+      <td className="px-4 py-3 text-sm font-mono">
         {formatCurrency(item.metrics?.price_usd)}
       </td>
-   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
+      <td className="px-4 py-3 text-sm font-mono">
         <span className={
           priceChange === null || priceChange === undefined
             ? 'text-gray-500'
@@ -596,13 +596,11 @@ function SubnetRow({
           {formatPercent(priceChange)}
         </span>
       </td>
-   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
+      <td className="px-4 py-3 text-sm font-mono">
         {formatCurrency(item.metrics?.market_cap_usd)}
-      </td> 
-   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
-        {formatCurrency(item.metrics?.fdv_usd)}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3 text-sm font-mono">
+        {formatCurrency(item.metrics?.fdv_usd)}
       </td>
       <td className="px-4 py-3">
         {hasDirectRevenue ? (
