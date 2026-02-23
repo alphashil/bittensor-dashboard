@@ -9,9 +9,26 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
-  Activity
+  Activity,
+  HelpCircle
 } from 'lucide-react'
 import { useSubnets, SubnetWithMetrics } from '@/hooks/useSubnets'
+
+// Simple tooltip component
+function Tooltip({ content, children }: { content: string; children: React.ReactNode }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative inline-flex" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      {children}
+      {show && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg whitespace-nowrap z-50">
+          {content}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+        </div>
+      )}
+    </div>
+  )
+}
 
 type SortField = 'id' | 'name' | 'emission' | 'marketCap' | 'fdv' | 'price' | 'priceChange' | 'revenue'
 type SortDirection = 'asc' | 'desc'
@@ -324,7 +341,10 @@ export function Dashboard() {
                     onClick={() => handleSort('emission')}
                   >
                     <div className="flex items-center gap-1">
-                      Emission % <SortIcon field="emission" />
+                      Tao Emission % <SortIcon field="emission" />
+                      <Tooltip content="These are the subnet's current share of daily TAO emissions">
+                        <HelpCircle className="w-3.5 h-3.5 text-gray-500 hover:text-gray-400 cursor-help" />
+                      </Tooltip>
                     </div>
                   </th>
                   <th
@@ -363,6 +383,14 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-1">
                       Market Cap <SortIcon field="marketCap" />
+                    </div>
+                  </th>                  
+                  <th
+                    className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
+                    onClick={() => handleSort('fdv')}
+                  >
+                    <div className="flex items-center gap-1">
+                      FDV <SortIcon field="fdv" />
                     </div>
                   </th>
                   <th className="px-4 py-3 text-sm font-medium text-gray-400">
@@ -554,10 +582,10 @@ function SubnetRow({
           ? `${item.metrics.emission_percent.toFixed(2)}%`
           : '-'}
       </td>
-      <td className="px-4 py-3 text-sm font-mono">
+   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
         {formatCurrency(item.metrics?.price_usd)}
       </td>
-      <td className="px-4 py-3 text-sm font-mono">
+   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
         <span className={
           priceChange === null || priceChange === undefined
             ? 'text-gray-500'
@@ -568,8 +596,13 @@ function SubnetRow({
           {formatPercent(priceChange)}
         </span>
       </td>
-      <td className="px-4 py-3 text-sm font-mono">
+   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
         {formatCurrency(item.metrics?.market_cap_usd)}
+      </td> 
+   className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
+        {formatCurrency(item.metrics?.fdv_usd)}
+      </td>
+      <td className="px-4 py-3">
       </td>
       <td className="px-4 py-3">
         {hasDirectRevenue ? (
