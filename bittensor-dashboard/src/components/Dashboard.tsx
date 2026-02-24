@@ -9,10 +9,25 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
   Activity,
   HelpCircle
 } from 'lucide-react'
 import { useSubnets, SubnetWithMetrics } from '@/hooks/useSubnets'
+
+// Subnet descriptions from backprop.finance
+const SUBNET_DESCRIPTIONS: Record<number, string> = {
+  1: "Apex defines an incentive mechanism to create a distributed conversational AI.",
+  8: "Vanta Network incentivizes the contribution of profitable trading strategies across various financial markets. Contributors who provide the best trading signals receive the highest rewards, attracting skilled traders, data scientists, and machine learning teams to compete.",
+  18: "The Zeus Subnet leverages advanced AI models within the Bittensor network to forecast environmental data. This platform is engineered on a decentralized, incentive-driven framework to enhance trustworthiness and stimulate continuous technological advancement.",
+  21: "OMEGA inc: The Awakening - A decentralized AI network focused on open-source artificial general intelligence.",
+  23: "A Bittensor subnet for evaluating and detecting behavioral traits in Large Language Models (LLMs). This system creates a competitive environment where miners submit seed instructions to identify potentially problematic behaviors such as deception, sycophancy, manipulation, and overconfidence.",
+  24: "Quasar is a Bittensor subnet designed to overcome the long-context limitation in AI models by enabling efficient reasoning across millions of tokens in a single context window using continuous-time attention transformer architecture.",
+  64: "Chutes is a serverless compute platform designed for scalable AI workloads, allowing users to build, deploy, and manage AI applications (chutes) that run on GPU-enabled infrastructure. The platform supports Docker-based images with CUDA and Python, offers trusted execution environments (TEE), and features granular access control via API keys.",
+  70: "Vericore is a Bittensor subnet seeking to improve large-scale semantic fact-checking and verification. The subnet processes statements and returns evidence-based validation through relevant quotes and source materials that either support or contradict the input claims.",
+  72: "StreetVision is a decentralized subnet designed to inference images to extract information such as construction sites. Built on Bittensor, this subnet incentivizes miners to develop and deploy models that accurately detect features.",
+  120: "affine - affinity with the machine",
+}
 
 // Simple tooltip component
 function Tooltip({ content, children }: { content: string; children: React.ReactNode }) {
@@ -43,6 +58,20 @@ export function Dashboard() {
   const [showRevenueOnly, setShowRevenueOnly] = useState(false)
   const [revenuePeriod, setRevenuePeriod] = useState<RevenuePeriod>('1d')
   const [priceChangePeriod, setPriceChangePeriod] = useState<PriceChangePeriod>('24h')
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
+
+  // Toggle row expansion
+  const toggleRow = (id: number) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   // Get revenue value based on period
   const getRevenueValue = (item: SubnetWithMetrics): number | null => {
@@ -319,6 +348,7 @@ export function Dashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800 text-left">
+                  <th className="px-4 py-3 text-sm font-medium text-gray-400 w-10"></th>
                   <th
                     className="px-4 py-3 text-sm font-medium text-gray-400 cursor-pointer hover:text-white transition"
                     onClick={() => handleSort('id')}
@@ -428,6 +458,9 @@ export function Dashboard() {
                     getRevenueValue={getRevenueValue}
                     priceChangePeriod={priceChangePeriod}
                     getPriceChangeValue={getPriceChangeValue}
+                    isExpanded={expandedRows.has(item.subnet.id)}
+                    onToggle={() => toggleRow(item.subnet.id)}
+                    description={SUBNET_DESCRIPTIONS[item.subnet.id] || null}
                   />
                 ))}
               </tbody>
@@ -536,7 +569,10 @@ function SubnetRow({
   revenuePeriod,
   getRevenueValue,
   priceChangePeriod,
-  getPriceChangeValue
+  getPriceChangeValue,
+  isExpanded,
+  onToggle,
+  description
 }: {
   item: SubnetWithMetrics
   formatCurrency: (v: number | null | undefined) => string
@@ -545,6 +581,9 @@ function SubnetRow({
   getRevenueValue: (item: SubnetWithMetrics) => number | null
   priceChangePeriod: PriceChangePeriod
   getPriceChangeValue: (item: SubnetWithMetrics) => number | null
+  isExpanded: boolean
+  onToggle: () => void
+  description: string | null
 }) {
   const priceChange = getPriceChangeValue(item)
   const revenue = getRevenueValue(item)
@@ -552,7 +591,14 @@ function SubnetRow({
   const hasRevenueLink = item.subnet.has_revenue_dashboard && !hasDirectRevenue
 
   return (
-    <tr className="border-b border-gray-800/50 hover:bg-gray-800/30 transition">
+    <>
+    <tr
+      className="border-b border-gray-800/50 hover:bg-gray-800/30 transition cursor-pointer"
+      onClick={onToggle}
+    >
+      <td className="px-4 py-3 text-sm font-mono text-gray-400">
+        <ChevronRight className={`w-4 h-4 inline-block transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+      </td>
       <td className="px-4 py-3 text-sm font-mono text-gray-400">
         {item.subnet.id}
       </td>
@@ -633,6 +679,44 @@ function SubnetRow({
         )}
       </td>
     </tr>
+    {isExpanded && (
+      <tr className="border-b border-gray-800/50 bg-gray-900/50">
+        <td colSpan={9} className="px-4 py-4">
+          <div className="bg-gray-800/50 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-gray-300 mb-2">Subnet Description</h4>
+            {description ? (
+              <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+            ) : (
+              <p className="text-sm text-gray-500 italic">No description available for this subnet.</p>
+            )}
+            <div className="mt-4 pt-4 border-t border-gray-700/50">
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Quick Stats</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <span className="text-xs text-gray-500">Price (USD)</span>
+                  <p className="text-sm font-mono text-gray-300">{formatCurrency(item.metrics?.price_usd)}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Market Cap</span>
+                  <p className="text-sm font-mono text-gray-300">{formatCurrency(item.metrics?.market_cap_usd)}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">FDV</span>
+                  <p className="text-sm font-mono text-gray-300">{formatCurrency(item.metrics?.fdv_usd)}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Emission</span>
+                  <p className="text-sm font-mono text-gray-300">
+                    {item.metrics?.emission_percent ? `${item.metrics.emission_percent.toFixed(2)}%` : '-'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    )}
+  </>
   )
 }
 
